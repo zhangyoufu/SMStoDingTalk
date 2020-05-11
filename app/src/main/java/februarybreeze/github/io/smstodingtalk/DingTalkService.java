@@ -15,12 +15,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class DingTalkService extends IntentService {
+    private static final String TAG = DingTalkService.class.getSimpleName();
+
     public DingTalkService() {
         super("DingTalkService");
-    }
-
-    public DingTalkService(String name) {
-        super(name);
     }
 
     @Override
@@ -29,8 +27,9 @@ public class DingTalkService extends IntentService {
             return;
         }
 
-        String token = intent.getStringExtra(Constant.Current_Ding_Talk_Token);
-        String message = intent.getStringExtra(Constant.SMS_Message);
+        Preferences preferences = new Preferences(this);
+        String token = preferences.getDingTalkToken();
+        String message = intent.getStringExtra(Constant.Message);
         sendMessage(token, message);
     }
 
@@ -40,18 +39,18 @@ public class DingTalkService extends IntentService {
         }
 
         final JSONObject root = new JSONObject();
+        final JSONObject content = new JSONObject();
         try {
-            JSONObject content = new JSONObject();
             content.put("content", message);
             root.put("msgtype", "text");
             root.put("text", content);
         } catch (JSONException e) {
-            Log.d("DingTalkService", e.toString());
+            Log.e(TAG, "Exception", e);
         }
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
                 Request.Method.POST,
-                Constant.Ding_Talk_Robot_Url + dingTalkToken,
+                Constant.DingTalk_URL + dingTalkToken,
                 root,
                 new Response.Listener<JSONObject>() {
                     @Override
